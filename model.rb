@@ -93,7 +93,7 @@ end
 class FileNode < Node
 
   def initialize(name)
-    @life = 15
+    @life = 30
     super()
     @name = name
     @mass = 1.0
@@ -123,20 +123,20 @@ end
 class PersonNode < Node
   
   def initialize(name)
-    @life = 30
+    @life = 60
     super()
     @name = name
     @mass = 10.0
     @max_speed = 2.0
     @pos = Vector.new($width * rand, $height * rand)
     @speed = Vector.new(@mass * rand(2) - 1, @mass * rand(2) - 1)
-    @color = [192, 192, 192]
+    @color = [0, 0, 0]
     @color_count = 0
   end
 
   def add_file(file)
     @color_count += 1
-    (0..2).each { |i| @color[i] += file.color[i].to_f / @color_count }
+    (0..2).each { |i| @color[i] = (@color[i] + file.color[i].to_f) / @color_count }
   end
 
   def relax(others)

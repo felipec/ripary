@@ -15,19 +15,26 @@ class Scene
   end
 
   def play(grouped_events)
-    grouped_events.each do |group|
-      process(group.events)
+    prev = 0
+    first = grouped_events.first.id
+    last = grouped_events.last.id
+    id = first
+    while id <= last
+      @date = Time.at(id * (60 * 60 * 24 / $frames_per_day))
+      if id == grouped_events.first.id
+        group = grouped_events.shift
+        process(group.events)
+      end
       (1..$frames_per_day).each do |f|
         update
         draw
       end
       cleanup
+      id += 1
     end
   end
 
   def process(events)
-    @date = events.first.date
-
     events.each do |e|
 
       # file_nodes
@@ -97,15 +104,22 @@ class Scene
   def draw_node(node)
     x = node.pos.x
     y = node.pos.y
-    size = 2
     case node
     when PersonNode
       if node.hi?
-        @cr2.set_source_color(:white)
+        def color_map (v)
+          return v / 255 * 0.1 + 0.9
+        end
+        # @cr2.set_source_color(:white)
+        @cr2.set_source_rgba(color_map(node.color[0]), color_map(node.color[1]), color_map(node.color[2]),
+                             node.liveness)
         @cr2.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_BOLD)
         @cr2.set_font_size(14)
       else
-        @cr2.set_source_rgba(node.color[0] / 255, node.color[1] / 255, node.color[2] / 255,
+        def color_map (v)
+          return v / 255 * 0.5 + 0.5
+        end
+        @cr2.set_source_rgba(color_map(node.color[0]), color_map(node.color[1]), color_map(node.color[2]),
                              node.liveness)
         @cr2.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL)
         @cr2.set_font_size(10)
@@ -115,15 +129,19 @@ class Scene
       @cr2.move_to(x - extents.width / 2 + 0.5, y + extents.height / 2 + 0.5)
       @cr2.show_text(node.name)
     when FileNode
+      size = 2
       if node.hi?
+        size *= 1.5
         @cr.set_source_color(:white)
-        @cr.arc(x + 0.5, y + 0.5, size + 2, 0, 2 * Math::PI)
-        @cr.set_line_width(0.25)
+        @cr.arc(x + 0.5, y + 0.5, size + 1, 0, 2 * Math::PI)
+        @cr.set_line_width(1.0)
         @cr.stroke
-      else
-        @cr.set_source_rgba(node.color[0] / 255, node.color[1] / 255, node.color[2] / 255,
-                            node.liveness)
       end
+      def color_map (v)
+        return v / 255 * 0.9 + 0.1
+      end
+      @cr.set_source_rgba(color_map(node.color[0]), color_map(node.color[1]), color_map(node.color[2]),
+                          node.liveness)
       @cr.arc(x + 0.5, y + 0.5, size, 0, 2 * Math::PI)
       @cr.fill
     end
@@ -148,7 +166,7 @@ class Scene
     @cr2.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL)
     @cr2.set_font_size(10)
 
-    @cr2.move_to($width / 4 * 3, $height - 15)
+    @cr2.move_to($width - 80, $height - 10)
     @cr2.show_text(text)
 
     # finalize

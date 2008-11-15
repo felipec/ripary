@@ -6,8 +6,8 @@ require 'scene'
 
 $width = 640
 $height = 480
-$highlight = 2
-$frames_per_day = 8
+$highlight = 5
+$frames_per_day = 4
 
 puts "Parsing events"
 events = get_events()
