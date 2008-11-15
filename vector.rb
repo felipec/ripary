@@ -5,6 +5,7 @@ require 'xml/libxml'
 $width = 640
 $height = 480
 $highlight = 5
+$frames_per_day = 8
 
 class Vector
   attr_reader :x, :y
@@ -79,6 +80,7 @@ end
 
 class Node < Drawable
   attr_accessor :mass, :pos, :speed
+  attr_reader :color
 
   def initialize(life_init, life_decrement)
     super(life_init, life_decrement)
@@ -124,10 +126,14 @@ class Node < Drawable
     return @life >= @highlight
   end
 
+  def liveness
+    return @life.to_f / @life_init
+  end
+
 end
 
 class FileNode < Node
-  
+
   def initialize(name)
     super(127, -2)
     @name = name
@@ -137,6 +143,22 @@ class FileNode < Node
     @pos = Vector.new($width * rand, $height * rand)
     @speed = Vector.new(@mass * rand(2) - 1, @mass * rand(2) - 1)
     @max_touches = 0
+    case name
+    when /\/Documentation\/.*/
+      @color = [255, 255, 0]
+    when /.*\.[ch]/
+      @color = [0, 0, 255]
+    when /.*\.sh/
+      @color = [0, 255, 0]
+    when /.*\.py/
+      @color = [0, 255, 0]
+    when /.*\.perl/
+      @color = [0, 255, 0]
+    when /.*\.tcl/
+      @color = [255, 0, 255]
+    else
+      @color = [255, 0, 0]
+    end
   end
 
   def freshen
@@ -159,11 +181,19 @@ class PersonNode < Node
     @max_speed = 2.0
     @pos = Vector.new($width * rand, $height * rand)
     @speed = Vector.new(@mass * rand(2) - 1, @mass * rand(2) - 1)
+    @color = [0, 0, 0]
+    @color_count = 0
   end
 
   def freshen
     @life = 255
     @touches += 1
+    # @mass += 0.1 # todo: is this ok?
+  end
+
+  def add_file(file)
+    @color_count += 1
+    (0..2).each { |i| @color[i] += file.color[i].to_f / @color_count }
   end
 
 end
@@ -244,6 +274,8 @@ def process(events)
       $person_nodes[name] = person
     end
 
+    person.add_file(file)
+
     # edges
     edge = $edges[[file, person]]
     if edge
@@ -277,6 +309,7 @@ def update
     relax_edge(e)
   end
 
+  # this is too slow!
   # puts "ln=#{$living_nodes.length}"
   $living_nodes.each do |e|
     relax_node(e)
@@ -326,13 +359,13 @@ class Scene
         @cr2.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_BOLD)
         @cr2.set_font_size(14)
       else
-        @cr2.set_source_color(:blue)
+        @cr2.set_source_rgba(node.color[0] / 255, node.color[1] / 255, node.color[2] / 255,
+                             node.liveness)
         @cr2.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL)
         @cr2.set_font_size(10)
       end
 
       extents = @cr2.text_extents(node.name)
-      # @cr2.set_line_width(0)
       @cr2.move_to(x - extents.width / 2 + 0.5, y + extents.height / 2 + 0.5)
       @cr2.show_text(node.name)
     when FileNode
@@ -342,7 +375,8 @@ class Scene
         @cr.set_line_width(0.25)
         @cr.stroke
       else
-        @cr.set_source_color(:green)
+        @cr.set_source_rgba(node.color[0] / 255, node.color[1] / 255, node.color[2] / 255,
+                            node.liveness)
       end
       @cr.arc(x + 0.5, y + 0.5, size, 0, 2 * Math::PI)
       @cr.fill
@@ -383,7 +417,6 @@ end
 
 puts "Organizing events"
 $sorted_events = {}
-$frames_per_day = 4
 
 $events.each do |e|
   id = e.date.to_i / (60 * 60 * 24 / $frames_per_day)
