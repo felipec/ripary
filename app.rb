@@ -6,11 +6,11 @@ require 'scene'
 
 $width = 640
 $height = 480
-$highlight = 5
+$highlight = 2
 $frames_per_day = 8
 
-s = Scene.new($width, $height)
 puts "Parsing events"
 events = get_events()
 puts "Rendering"
+s = Scene.new($width, $height)
 s.play(events)

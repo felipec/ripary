@@ -4,14 +4,13 @@ class Base
   attr_accessor :life, :life_init
   attr_accessor :name
 
-  def initialize(life_init, life_decrement)
-    @life = @life_init = life_init
-    @life_decrement = life_decrement
+  def initialize()
+    @life_init = @life
   end
 
   def decay
     return if not alive?
-    @life += @life_decrement
+    @life -= 1
     @life = 0 if @life < 0
   end
 
@@ -23,14 +22,17 @@ class Base
     @life = @life_init
   end
 
+  def update
+  end
+
 end
 
 class Node < Base
   attr_accessor :mass, :pos, :speed
   attr_reader :color
 
-  def initialize(life_init, life_decrement)
-    super(life_init, life_decrement)
+  def initialize()
+    super()
     @highlight = @life_init * (1 - ($highlight.to_f) / 100)
   end
 
@@ -76,7 +78,6 @@ class Node < Base
   def update
     apply_speed
     # todo constrain
-    decay
   end
 
   def hi?
@@ -92,7 +93,8 @@ end
 class FileNode < Node
 
   def initialize(name)
-    super(200, -2)
+    @life = 15
+    super()
     @name = name
     @mass = 1.0
     @max_speed = 7.0
@@ -121,13 +123,14 @@ end
 class PersonNode < Node
   
   def initialize(name)
-    super(255, -1)
+    @life = 30
+    super()
     @name = name
     @mass = 10.0
     @max_speed = 2.0
     @pos = Vector.new($width * rand, $height * rand)
     @speed = Vector.new(@mass * rand(2) - 1, @mass * rand(2) - 1)
-    @color = [0, 0, 0]
+    @color = [192, 192, 192]
     @color_count = 0
   end
 
@@ -148,7 +151,8 @@ class Edge < Base
   attr_accessor :to, :from
 
   def initialize(from, to)
-    super(250, -2)
+    @life = 60
+    super()
     @from = from
     @to = to
     @len = 25.0
@@ -163,10 +167,6 @@ class Edge < Base
     @to.apply(force)
     force.negate!
     @from.apply(force)
-  end
-
-  def update
-    decay
   end
 
 end

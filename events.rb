@@ -11,6 +11,20 @@ class Event
   
 end
 
+class EventGroup
+  attr_reader :id, :events
+
+  def initialize(id)
+    @id = id
+    @events = []
+  end
+
+  def <<(event)
+    @events << event
+  end
+
+end
+
 def get_events
   events = []
 
@@ -20,11 +34,18 @@ def get_events
                         e['author'], e['filename'])
   end
 
-  sorted_events = {}
+  sorted_events = []
+  hashed_events = {}
 
   events.each do |e|
     id = e.date.to_i / (60 * 60 * 24 / $frames_per_day)
-    group = sorted_events[id] ||= []
+    # puts "%d => %d" % [e.date.to_i, id]
+    group = hashed_events[id]
+    if not group
+      group = EventGroup.new(id)
+      hashed_events[id] = group
+      sorted_events << group
+    end
     group << e
   end
 

@@ -15,16 +15,19 @@ class Scene
   end
 
   def play(grouped_events)
-    grouped_events.each_value do |events|
-      process(events)
+    grouped_events.each do |group|
+      process(group.events)
       (1..$frames_per_day).each do |f|
         update
         draw
       end
+      cleanup
     end
   end
 
   def process(events)
+    @date = events.first.date
+
     events.each do |e|
 
       # file_nodes
@@ -139,9 +142,25 @@ class Scene
       draw_node(n);
     end
 
+    # date
+    text = @date.strftime("%b %d, %Y")
+    @cr2.set_source_rgba(0.8, 0.8, 0.8, 1.0)
+    @cr2.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL)
+    @cr2.set_font_size(10)
+
+    @cr2.move_to($width / 4 * 3, $height - 15)
+    @cr2.show_text(text)
+
+    # finalize
     puts "count: #{@count += 1}"
     # @cr.target.write_to_png("frames/%0.5i.png" % [@count += 1])
     @out_file.write(@surface.data)
+  end
+
+  def cleanup
+    @living_edges.each { |e| e.decay }
+    @living_nodes.each { |e| e.decay }
+    @living_people.each { |e| e.decay }
   end
 
 end
