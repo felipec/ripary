@@ -4,6 +4,7 @@ require 'xml/libxml'
 
 $width = 640
 $height = 480
+$highlight = 5
 
 class Vector
   attr_reader :x, :y
@@ -79,6 +80,11 @@ end
 class Node < Drawable
   attr_accessor :mass, :pos, :speed
 
+  def initialize(life_init, life_decrement)
+    super(life_init, life_decrement)
+    @highlight = @life_init * (1 - ($highlight.to_f) / 100)
+  end
+
   def force_adjust(nodes)
     force = Vector.new()
     nodes.each do |b|
@@ -114,6 +120,10 @@ class Node < Drawable
     @speed.scale!(0.5)
   end
 
+  def hi?
+    return @life >= @highlight
+  end
+
 end
 
 class FileNode < Node
@@ -145,7 +155,6 @@ class PersonNode < Node
     super(255, -1)
     @name = name
     @touches = 1
-    @life = 255
     @mass = 10.0
     @max_speed = 2.0
     @pos = Vector.new($width * rand, $height * rand)
@@ -302,8 +311,7 @@ class Scene
     @surface = Cairo::ImageSurface.new(Cairo::Format::RGB24, width, height)
     @out_file = File.new("/tmp/cs_out.bin", "w")
     @cr = Cairo::Context.new(@surface)
-    @cr.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_BOLD)
-    @cr.set_font_size(10)
+    @cr2 = Cairo::Context.new(@surface)
     @count = 0
   end
 
@@ -313,21 +321,29 @@ class Scene
     size = 2
     case node
     when PersonNode
-=begin
-      @cr.set_line_width(0.25)
-      @cr.set_source_color(:white)
-      @cr.arc(x + 0.5, y + 0.5, size + 2, 0, 2 * Math::PI)
-      @cr.stroke
-      @cr.set_source_color(:red)
-      @cr.arc(x + 0.5, y + 0.5, size, 0, 2 * Math::PI)
-      @cr.fill
-=end
+      if node.hi?
+        @cr2.set_source_color(:white)
+        @cr2.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_BOLD)
+        @cr2.set_font_size(14)
+      else
+        @cr2.set_source_color(:blue)
+        @cr2.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL)
+        @cr2.set_font_size(10)
+      end
 
-      @cr.set_source_color(:blue)
-      @cr.move_to(x + size + 2, y + size / 2)
-      @cr.show_text(node.name)
+      extents = @cr2.text_extents(node.name)
+      # @cr2.set_line_width(0)
+      @cr2.move_to(x - extents.width / 2 + 0.5, y + extents.height / 2 + 0.5)
+      @cr2.show_text(node.name)
     when FileNode
-      @cr.set_source_color(:green)
+      if node.hi?
+        @cr.set_source_color(:white)
+        @cr.arc(x + 0.5, y + 0.5, size + 2, 0, 2 * Math::PI)
+        @cr.set_line_width(0.25)
+        @cr.stroke
+      else
+        @cr.set_source_color(:green)
+      end
       @cr.arc(x + 0.5, y + 0.5, size, 0, 2 * Math::PI)
       @cr.fill
     end
