@@ -19,11 +19,11 @@ class Vector
   end
 
   def length
-    return Math.sqrt(@x * @x + @y * @y)
+    return Math.sqrt(@x ** 2 + @y ** 2)
   end
 
   def length_sqr
-    return @x * @x + @y * @y
+    return @x ** 2 + @y ** 2
   end
 
   def -(v)
@@ -79,6 +79,24 @@ end
 class Node < Drawable
   attr_accessor :mass, :pos, :speed
 
+  def force_adjust(nodes)
+    force = Vector.new()
+    nodes.each do |b|
+      next if self === b
+      cur = nil
+      dist = ((@pos.x - b.pos.x) ** 2) + ((@pos.y - b.pos.y) ** 2)
+      if dist == 0
+        # random
+        p "huh"
+      elsif dist < 10000
+        cur = @pos - b.pos
+        cur.scale!(1.0 / dist)
+      end
+      force.add!(cur) if cur
+    end
+    apply(force)
+  end
+
   def apply(force)
     if (force.length > 0)
       @speed.add!(force.scale(@mass))
@@ -101,10 +119,9 @@ end
 class FileNode < Node
   
   def initialize(name)
-    super(255, -1)
+    super(127, -2)
     @name = name
     @touches = 1
-    @life = 255
     @mass = 1.0
     @max_speed = 7.0
     @pos = Vector.new($width * rand, $height * rand)
@@ -147,7 +164,7 @@ class Edge < Drawable
   attr_accessor :to, :from
 
   def initialize(from, to)
-    super(255, -1)
+    super(250, -2)
     @from = from
     @to = to
     @len = 25.0
@@ -170,37 +187,12 @@ def relax_edge(e)
   e.from.apply(force)
 end
 
-def force_between_nodes(a, b)
-  force = Vector.new
-  tmp = a.pos - b.pos
-  dist = tmp.length_sqr
-  if dist == 0
-    # force random
-    p "huh"
-  elsif dist < 10000
-    tmp.scale!(1.0 / dist)
-    force.set!(tmp)
-  end
-
-  return force
-end
-
 def relax_node(node)
-  force = Vector.new()
-  $living_nodes.each do |b|
-    next if node === b
-    force.add!(force_between_nodes(node, b))
-  end
-  node.apply(force)
+  node.force_adjust($living_nodes)
 end
 
 def relax_person(node)
-  force = Vector.new()
-  $living_people.each do |b|
-    next if node === b
-    force.add!(force_between_nodes(node, b))
-  end
-  node.apply(force)
+  node.force_adjust($living_people)
   node.speed.scale!(1.0 / 12)
 end
 
@@ -258,15 +250,15 @@ def process(events)
   $living_edges = []
 
   $file_nodes.each_value do |e|
-    $living_nodes << e
+    $living_nodes << e if e.alive?
   end
 
   $person_nodes.each_value do |e|
-    $living_people << e
+    $living_people << e if e.alive?
   end
 
   $edges.each_value do |e|
-    $living_edges << e
+    $living_edges << e if e.alive?
   end
 end
 
@@ -276,10 +268,12 @@ def update
     relax_edge(e)
   end
 
+  # puts "ln=#{$living_nodes.length}"
   $living_nodes.each do |e|
     relax_node(e)
   end
 
+  # puts "lp=#{$living_people.length}"
   $living_people.each do |e|
     relax_person(e)
   end
@@ -305,8 +299,11 @@ end
 class Scene
 
   def initialize(width, height)
-    surface = Cairo::ImageSurface.new(width, height)
-    @cr = Cairo::Context.new(surface)
+    @surface = Cairo::ImageSurface.new(Cairo::Format::RGB24, width, height)
+    @out_file = File.new("/tmp/cs_out.bin", "w")
+    @cr = Cairo::Context.new(@surface)
+    @cr.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_BOLD)
+    @cr.set_font_size(10)
     @count = 0
   end
 
@@ -317,18 +314,15 @@ class Scene
     case node
     when PersonNode
 =begin
-    @cr.set_line_width(0.25)
-    @cr.set_source_color(:white)
-    @cr.arc(x + 0.5, y + 0.5, size + 2, 0, 2 * Math::PI)
-    @cr.stroke
-=end
+      @cr.set_line_width(0.25)
+      @cr.set_source_color(:white)
+      @cr.arc(x + 0.5, y + 0.5, size + 2, 0, 2 * Math::PI)
+      @cr.stroke
       @cr.set_source_color(:red)
       @cr.arc(x + 0.5, y + 0.5, size, 0, 2 * Math::PI)
       @cr.fill
+=end
 
-      @cr.set_line_width(0)
-      @cr.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_BOLD)
-      @cr.set_font_size(10)
       @cr.set_source_color(:blue)
       @cr.move_to(x + size + 2, y + size / 2)
       @cr.show_text(node.name)
@@ -341,7 +335,7 @@ class Scene
 
   def draw
     # fill background with black
-    @cr.set_source_color("#000f")
+    @cr.set_source_color(:black)
     @cr.paint
 
     $living_nodes.each do |n|
@@ -351,8 +345,10 @@ class Scene
     $living_people.each do |n|
       draw_node(n);
     end
-    
-    @cr.target.write_to_png("frames/%0.5i.png" % [@count += 1])
+
+    puts "count: #{@count += 1}"
+    # @cr.target.write_to_png("frames/%0.5i.png" % [@count += 1])
+    @out_file.write(@surface.data)
   end
 
 end
