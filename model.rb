@@ -94,12 +94,10 @@ class FileNode < Node
   def initialize(name)
     super(200, -2)
     @name = name
-    @touches = 1
     @mass = 1.0
     @max_speed = 7.0
     @pos = Vector.new($width * rand, $height * rand)
     @speed = Vector.new(@mass * rand(2) - 1, @mass * rand(2) - 1)
-    @max_touches = 0
     case name
     when /\/Documentation\/.*/
       @color = [255, 255, 0]
@@ -118,14 +116,6 @@ class FileNode < Node
     end
   end
 
-  def freshen
-    super()
-    @touches += 1
-    if @touches > @max_touches
-      @max_touches = @touches
-    end
-  end
-
 end
 
 class PersonNode < Node
@@ -133,19 +123,12 @@ class PersonNode < Node
   def initialize(name)
     super(255, -1)
     @name = name
-    @touches = 1
     @mass = 10.0
     @max_speed = 2.0
     @pos = Vector.new($width * rand, $height * rand)
     @speed = Vector.new(@mass * rand(2) - 1, @mass * rand(2) - 1)
     @color = [0, 0, 0]
     @color_count = 0
-  end
-
-  def freshen
-    super()
-    @touches += 1
-    # @mass += 0.1 # todo: is this ok?
   end
 
   def add_file(file)

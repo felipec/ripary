@@ -14,14 +14,12 @@ end
 def get_events
   events = []
 
-  puts "Parsing events"
   doc = XML::Document.file("events.xml")
   doc.find("//event").each do |e|
     events << Event.new(Time.at(e['date'].to_i / 1000),
                         e['author'], e['filename'])
   end
 
-  puts "Organizing events"
   sorted_events = {}
 
   events.each do |e|

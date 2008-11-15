@@ -15,7 +15,6 @@ class Scene
   end
 
   def play(grouped_events)
-    puts "Rendering"
     grouped_events.each_value do |events|
       process(events)
       (1..$frames_per_day).each do |f|
