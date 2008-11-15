@@ -76,6 +76,10 @@ class Drawable
     return @life > 0
   end
 
+  def freshen
+    @life = @life_init
+  end
+
 end
 
 class Node < Drawable
@@ -135,7 +139,7 @@ end
 class FileNode < Node
 
   def initialize(name)
-    super(127, -2)
+    super(200, -2)
     @name = name
     @touches = 1
     @mass = 1.0
@@ -162,7 +166,7 @@ class FileNode < Node
   end
 
   def freshen
-    @life = 255
+    super()
     @touches += 1
     if @touches > @max_touches
       @max_touches = @touches
@@ -186,7 +190,7 @@ class PersonNode < Node
   end
 
   def freshen
-    @life = 255
+    super()
     @touches += 1
     # @mass += 0.1 # todo: is this ok?
   end
@@ -206,10 +210,6 @@ class Edge < Drawable
     super(250, -2)
     @from = from
     @to = to
-    @len = 25.0
-  end
-
-  def freshen
     @len = 25.0
   end
 
