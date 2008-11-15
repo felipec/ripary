@@ -80,10 +80,6 @@ class Node < Base
     # todo constrain
   end
 
-  def hi?
-    return @life >= @highlight
-  end
-
   def liveness
     return @life.to_f / @life_init
   end
