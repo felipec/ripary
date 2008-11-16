@@ -167,3 +167,13 @@ class Edge < Base
   end
 
 end
+
+class Tag < Base
+
+  def initialize(name)
+    @life = 30
+    super()
+    @name = name
+  end
+
+end
