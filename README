@@ -1,0 +1,4 @@
+codeswarm.rb is a rewrite of Michael Ogawa's code_swarm in ruby using cairo.
+
+For the original code:
+http://code.google.com/p/codeswarm
