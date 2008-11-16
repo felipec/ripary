@@ -2,3 +2,29 @@ codeswarm.rb is a rewrite of Michael Ogawa's code_swarm in ruby using cairo.
 
 For the original code:
 http://code.google.com/p/codeswarm
+
+The format of the events xml file is compatible with code_swarm's one.
+
+You'll need libxml-ruby and cairo ruby files. You can use gem to install the dependencies:
+ gem install libxml-ruby
+ gem install cairo
+
+== howto generate a video ==
+
+This describes how to generate an H.264 video clip using mencoder, but it's
+also possible to export singe png images.
+
+First create a fifo file:
+ mkfifo /tmp/codeswarm_rgb.bin
+
+Then on a console launch mencoder:
+ mencoder -demuxer rawvideo -rawvideo w=640:h=480:fps=72:format=bgr32 \
+ -ovc x264 -x264encopts crf=10 -oac copy -o /tmp/movie.avi \
+ /tmp/codeswarm_rgb.bin
+
+It will wait until there's data on the fifo file.
+
+Then launch codeswarm.rb:
+ ruby app.rb
+
+That's it!
