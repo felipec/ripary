@@ -106,14 +106,10 @@ class Scene
     y = node.pos.y
     case node
     when PersonNode
-      def color_map (v, liveness)
-        return v / 255 * (1 - liveness) + (liveness)
-      end
-      @cr2.set_source_rgba(color_map(node.color[0], node.liveness),
-                           color_map(node.color[1], node.liveness),
-                           color_map(node.color[2], node.liveness),
-                           node.liveness)
-      @cr2.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL)
+      node.color.saturation = 1 - node.liveness
+      tmp = node.color.to_rgb
+      @cr2.set_source_rgba(tmp.r, tmp.g, tmp.b, node.liveness)
+      @cr2.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_BOLD)
       @cr2.set_font_size(14 * node.liveness)
 
       extents = @cr2.text_extents(node.name)

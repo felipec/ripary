@@ -126,13 +126,14 @@ class PersonNode < Node
     @max_speed = 2.0
     @pos = Vector.new($width * rand, $height * rand)
     @speed = Vector.new(@mass * rand(2) - 1, @mass * rand(2) - 1)
-    @color = [0, 0, 0]
-    @color_count = 0
+    @color = Cairo::Color::RGB.new(0.75, 1, 0.75).to_hsv
+    @color_count = 1
   end
 
   def add_file(file)
+    tmp = Cairo::Color::RGB.new(file.color[0] / 255.0, file.color[1] / 255.0, file.color[2] / 255.0).to_hsv
+    @color.hue += ((tmp.hue - @color.hue) / @color_count)
     @color_count += 1
-    (0..2).each { |i| @color[i] = (@color[i] + file.color[i].to_f) / @color_count }
   end
 
   def relax(others)
