@@ -1,0 +1,44 @@
+#!/usr/bin/env ruby
+
+ENV["GIT_DIR"] = ARGV[0] + "/.git"
+input = $stdin
+input = IO.popen("git log --pretty=\"format:==%an:%ct==\" --all --name-only --date-order --reverse")
+
+puts "<?xml version=\"1.0\"?>"
+puts "<file_events>"
+list = []
+begin
+  while true
+    while true
+      line = input.readline("\n")
+      match = line.match("==([^:]+):([^=]+)==")
+      break if not match
+      author = match[1]
+      case author
+      when "Uwe Kleine-K,Av(Bnig"
+        author = "Uwe Kleine-König"
+      when "Ren,Ai(B Scharfe"
+        author = "René Scharfe"
+      when "Ren,bi(B Scharfe"
+        author = "René Scharfe"
+      when "Santi B,Ai(Bjar"
+        author = "Santi Béjar"
+      when "iso-8859-1?Q?David_K=E5gedal"
+        author = "David Kedal"
+      when "David_Kågedal"
+        author = "David Kedal"
+      when "Ville Skytt,Ad(B"
+        author = "Ville Skyttä"
+      end
+      date = match[2]
+    end
+    while true
+      break if line == "\n"
+      line.chomp!("\n")
+      puts "<event date=\"#{date.to_i * 1000}\" author=\"#{author}\" filename=\"/#{line}\"/>"
+      line = input.readline("\n")
+    end
+  end
+rescue EOFError
+end
+puts "</file_events>"
