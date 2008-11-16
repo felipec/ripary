@@ -4,7 +4,7 @@ class Base
   attr_accessor :life, :life_init
   attr_accessor :name
 
-  def initialize()
+  def initialize
     @life_init = @life
   end
 
@@ -20,6 +20,10 @@ class Base
 
   def freshen
     @life = @life_init
+  end
+
+  def liveness
+    return @life.to_f / @life_init
   end
 
   def update
@@ -80,38 +84,16 @@ class Node < Base
     # todo constrain
   end
 
-  def liveness
-    return @life.to_f / @life_init
-  end
-
 end
 
 class FileNode < Node
 
   def initialize(name)
-    @life = 30
-    super()
     @name = name
-    @mass = 1.0
-    @max_speed = 7.0
+    config()
+    super()
     @pos = Vector.new($width * rand, $height * rand)
     @speed = Vector.new(@mass * rand(2) - 1, @mass * rand(2) - 1)
-    case name
-    when /\/Documentation\/.*/
-      @color = [255, 255, 0]
-    when /.*\.[ch]/
-      @color = [0, 0, 255]
-    when /.*\.sh/
-      @color = [0, 255, 0]
-    when /.*\.py/
-      @color = [0, 255, 0]
-    when /.*\.perl/
-      @color = [0, 255, 0]
-    when /.*\.tcl/
-      @color = [255, 0, 255]
-    else
-      @color = [255, 0, 0]
-    end
   end
 
 end
@@ -119,11 +101,9 @@ end
 class PersonNode < Node
   
   def initialize(name)
-    @life = 60
-    super()
     @name = name
-    @mass = 10.0
-    @max_speed = 2.0
+    config()
+    super()
     @pos = Vector.new($width * rand, $height * rand)
     @speed = Vector.new(@mass * rand(2) - 1, @mass * rand(2) - 1)
     @color = Cairo::Color::RGB.new(0.75, 1, 0.75).to_hsv
@@ -148,18 +128,17 @@ class Edge < Base
   attr_accessor :to, :from
 
   def initialize(from, to)
-    @life = 60
+    config()
     super()
     @from = from
     @to = to
-    @len = 25.0
   end
 
   def relax(other)
     force = @to.pos - @from.pos
     distance = force.length
     delta = (@len - distance) / (distance * 3)
-    delta *= @life.to_f / @life_init
+    delta *= liveness()
     force.scale!(delta)
     @to.apply(force)
     force.negate!
@@ -171,9 +150,9 @@ end
 class Tag < Base
 
   def initialize(name)
-    @life = 30
-    super()
     @name = name
+    config()
+    super()
   end
 
 end
