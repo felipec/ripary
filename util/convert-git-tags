@@ -4,10 +4,19 @@ require 'time'
 
 ENV["GIT_DIR"] = ARGV[0] + "/.git"
 
-output = `git for-each-ref --format='%(taggerdate:iso)::%(tag)' 'refs/tags/v*'`
-output.each do |e|
+# @todo find a generic way to do this
+# output = `git for-each-ref --format='%(committerdate:iso)::%(refname)' 'refs/tags/v*'`
+output = `git for-each-ref --format='%(taggerdate:iso)::%(tag)::%(committerdate:iso)::%(refname)' 'refs/tags/v*'`
+output.each_line do |e|
   e.chomp!
-  date, tag = e.split("::")
+  t_date, t_name, c_date, c_ref = e.split("::")
+  if t_date != ""
+    date = t_date
+    tag = t_name
+  else
+    date = c_date
+    tag = c_ref.gsub(/^refs\/tags\//, "")
+  end
   date = Time.parse(date)
-  puts "tags[%d / $timeblock] = \"%s\"" % [date.to_i, tag]
+  puts "$tags[%d / $timeblock] = \"%s\"" % [date.to_i, tag]
 end
