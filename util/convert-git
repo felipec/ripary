@@ -14,22 +14,6 @@ begin
       match = line.match("==([^:]+):([^=]+)==")
       break if not match
       author = match[1]
-      case author
-      when "Uwe Kleine-K,Av(Bnig"
-        author = "Uwe Kleine-König"
-      when "Ren,Ai(B Scharfe"
-        author = "René Scharfe"
-      when "Ren,bi(B Scharfe"
-        author = "René Scharfe"
-      when "Santi B,Ai(Bjar"
-        author = "Santi Béjar"
-      when "iso-8859-1?Q?David_K=E5gedal"
-        author = "David Kedal"
-      when "David_Kågedal"
-        author = "David Kedal"
-      when "Ville Skytt,Ad(B"
-        author = "Ville Skyttä"
-      end
       date = match[2]
     end
     while true
