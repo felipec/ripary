@@ -6,8 +6,8 @@ http://code.google.com/p/codeswarm
 The format of the events xml file is compatible with code_swarm's one.
 
 You'll need libxml-ruby and cairo ruby files. You can use gem to install the dependencies:
- gem install libxml-ruby
- gem install cairo
+ sudo gem install libxml-ruby
+ sudo gem install cairo
 
 == howto generate a video ==
 
@@ -26,5 +26,8 @@ It will wait until there's data on the fifo file.
 
 Then launch codeswarm.rb:
  ruby app.rb
+
+If you want to include audio add this:
+ -audioclip foobar.mp3
 
 That's it!
