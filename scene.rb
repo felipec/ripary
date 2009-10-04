@@ -145,9 +145,10 @@ class Scene
     text = @date.strftime("%b %d, %Y")
     @cr2.set_source_rgba(0.8, 0.8, 0.8, 1.0)
     @cr2.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL)
-    @cr2.set_font_size(10)
+    @cr2.set_font_size(14)
 
-    @cr2.move_to($width - 80, $height - 10)
+    extents = @cr2.text_extents(text)
+    @cr2.move_to($width - extents.width - 12, $height - 12)
     @cr2.show_text(text)
 
     if @tag and @tag.alive?
