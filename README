@@ -1,4 +1,8 @@
-codeswarm.rb is a rewrite of Michael Ogawa's code_swarm in ruby using cairo.
+ripary is a rewrite of Michael Ogawa's code_swarm in ruby using cairo.
+
+Why? code_swarm is 5k lines of code it depends on java 'Processing', and it's
+slow generating videos. Ripary is 500 lines of code, uses cairo, and it outputs
+raw video.
 
 For the original code:
 http://code.google.com/p/codeswarm
@@ -23,14 +27,19 @@ This describes how to generate an MPEG-4 video clip using FFmpeg, but it's also
 possible to export singe png images.
 
 First create a fifo file:
- mkfifo /tmp/codeswarm_rgb.bin
+ mkfifo /tmp/ripary_rgb.bin
 
 Then on a console launch ffmpeg:
- ffmpeg -f rawvideo -pix_fmt bgr32 -s 640x480 -r 60 -qscale 11 -i /tmp/codeswarm_rgb.bin /tmp/movie.avi
+ ffmpeg -f rawvideo -pix_fmt bgr32 -s 640x480 -r 60 -qscale 11 -i /tmp/ripary_rgb.bin /tmp/movie.avi
 
 It will wait until there's data on the fifo file.
 
-Then launch codeswarm.rb:
+Then launch ripary:
  ruby app.rb
 
 That's it!
+
+== to do ==
+
+ * improve physics algorithms to be faster
+ * don't depend on libxml (is there something fast enough)
