@@ -1,12 +1,26 @@
 #!/usr/bin/env ruby
 
+class Event
+  attr_reader :date, :author, :filename
+
+  def initialize(date, author, filename)
+    @date = date
+    @author = author
+    @filename = filename
+  end
+
+  def <=>(b)
+    return @date <=> b.date
+  end
+
+end
+
 ENV["GIT_DIR"] = ARGV[0] + "/.git"
 input = $stdin
 input = IO.popen("git log --pretty=\"format:==%an:%ct==\" --all --name-only --date-order --reverse")
 
-puts "<?xml version=\"1.0\"?>"
-puts "<file_events>"
-list = []
+@events = []
+
 begin
   while true
     while true
@@ -19,10 +33,18 @@ begin
     while true
       break if line == "\n"
       line.chomp!("\n")
-      puts "<event date=\"#{date.to_i * 1000}\" author=\"#{author}\" filename=\"/#{line}\"/>"
+      @events << Event.new(date.to_i * 1000, author, line)
       line = input.readline("\n")
     end
   end
 rescue EOFError
+end
+
+@events.sort!
+
+puts "<?xml version=\"1.0\"?>"
+puts "<file_events>"
+@events.each do |e|
+  puts "<event date=\"#{e.date}\" author=\"#{e.author}\" filename=\"/#{e.filename}\"/>"
 end
 puts "</file_events>"
