@@ -150,7 +150,7 @@ class Scene
     @cr2.move_to($width - 80, $height - 10)
     @cr2.show_text(text)
 
-    if @tag.alive?
+    if @tag and @tag.alive?
       @cr2.set_source_rgba(1.0, 1.0, 1.0, 1.0)
       @cr2.select_font_face("Liberation Mono", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_BOLD)
       @cr2.set_font_size(16)
@@ -169,7 +169,7 @@ class Scene
     @living_edges.each { |e| e.decay }
     @living_nodes.each { |e| e.decay }
     @living_people.each { |e| e.decay }
-    @tag.decay
+    @tag.decay if @tag
   end
 
 end
