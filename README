@@ -9,25 +9,28 @@ You'll need libxml-ruby and cairo ruby files. You can use gem to install the dep
  sudo gem install libxml-ruby
  sudo gem install cairo
 
+== get the events file ==
+
+There's a tool that generates the events file from a git repository:
+
+./util/convert-git ~/src/my-project > events.xml
+
+Most probably you would have to edit the file to remove mistakes.
+
 == howto generate a video ==
 
-This describes how to generate an H.264 video clip using mencoder, but it's
-also possible to export singe png images.
+This describes how to generate an MPEG-4 video clip using FFmpeg, but it's also
+possible to export singe png images.
 
 First create a fifo file:
  mkfifo /tmp/codeswarm_rgb.bin
 
-Then on a console launch mencoder:
- mencoder -demuxer rawvideo -rawvideo w=640:h=480:fps=72:format=bgr32 \
- -ovc x264 -x264encopts crf=10 -oac copy -o /tmp/movie.avi \
- /tmp/codeswarm_rgb.bin
+Then on a console launch ffmpeg:
+ ffmpeg -f rawvideo -pix_fmt bgr32 -s 640x480 -r 60 -qscale 11 -i /tmp/codeswarm_rgb.bin /tmp/movie.avi
 
 It will wait until there's data on the fifo file.
 
 Then launch codeswarm.rb:
  ruby app.rb
-
-If you want to include audio add this:
- -audioclip foobar.mp3
 
 That's it!
